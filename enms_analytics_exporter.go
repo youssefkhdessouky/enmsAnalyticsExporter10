@@ -25,6 +25,13 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"fmt"
+	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
+	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/serde"
+	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/serde/avro"
+	streamingMessageAvro "avro"
+	"os"
+
 )
 
 // Marshaler configuration used for marhsaling Protobuf
@@ -72,7 +79,86 @@ func (e *enmsAnalyticsExporter) ConsumeTraces(_ context.Context, td ptrace.Trace
 		return err
 	}
 	buf = e.compressor(buf)
+	topic := "records"
+
 	fmt.Println("consuming traces <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "192.168.45.34:9092"})
+
+	if err != nil {
+		fmt.Printf("Failed to create producer: %s\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Created Producer %v\n", p)
+
+	client, err := schemaregistry.NewClient(schemaregistry.NewConfig("http://192.168.45.34:8088"))
+
+	if err != nil {
+		fmt.Printf("Failed to create schema registry client: %s\n", err)
+		os.Exit(1)
+	}
+
+	ser, err := avro.NewSpecificSerializer(client, serde.ValueSerde, avro.NewSerializerConfig())
+
+	if err != nil {
+		fmt.Printf("Failed to create serializer: %s\n", err)
+		os.Exit(1)
+	}
+
+	// Optional delivery channel, if not specified the Producer object's
+	// .Events channel is used.
+	deliveryChan := make(chan kafka.Event)
+
+	value := streamingMessageAvro.StreamDataRecordMessage{}
+	value.Data = &streamingMessageAvro.UnionNullMapArrayUnionStringNull{}
+	value.Data.UnionType = streamingMessageAvro.UnionNullMapArrayUnionStringNullTypeEnumMapArrayUnionStringNull
+	value.Data.MapArrayUnionStringNull = make(map[string][]*streamingMessageAvro.UnionStringNull)
+	columnNames:= [3]string {"SpanId", "TraceId", "ParentId"}
+	for _, columnName := range columnNames {
+		value.Data.MapArrayUnionStringNull[columnName] = make([]*streamingMessageAvro.UnionStringNull,0)
+	}
+	spanIds := [4]string {"1", "2", "3", "4"}
+	traceIds := [4]string {"1", "2", "1", "2"}
+	parentIds := [4]string {"","1", "1", "2"}
+	for _, spanId := range spanIds {
+		value.Data.MapArrayUnionStringNull["SpanId"] = append(value.Data.MapArrayUnionStringNull["SpanId"], &streamingMessageAvro.UnionStringNull{String: spanId,
+			 UnionType: streamingMessageAvro.UnionStringNullTypeEnumString,})
+	}
+	for _, traceId := range traceIds {
+		value.Data.MapArrayUnionStringNull["TraceId"] = append(value.Data.MapArrayUnionStringNull["TraceId"], &streamingMessageAvro.UnionStringNull{String:traceId,
+			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString,})
+	}
+	for _, parentId := range parentIds {
+		value.Data.MapArrayUnionStringNull["ParentId"] = append(value.Data.MapArrayUnionStringNull["ParentId"], &streamingMessageAvro.UnionStringNull{String:parentId,
+			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString,})
+	}
+	payload, err := ser.Serialize(topic, &value)
+	if err != nil {
+		fmt.Printf("Failed to serialize payload: %s\n", err)
+		os.Exit(1)
+	}
+
+	err = p.Produce(&kafka.Message{
+		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
+		Value:          payload,
+		Headers:        []kafka.Header{{Key: "myTestHeader", Value: []byte("header values are binary")}},
+	}, deliveryChan)
+	if err != nil {
+		fmt.Printf("Produce failed: %v\n", err)
+		os.Exit(1)
+	}
+
+	eD := <-deliveryChan
+	m := eD.(*kafka.Message)
+
+	if m.TopicPartition.Error != nil {
+		fmt.Printf("Delivery failed: %v\n", m.TopicPartition.Error)
+	} else {
+		fmt.Printf("Delivered message to topic %s [%d] at offset %v\n",
+			*m.TopicPartition.Topic, m.TopicPartition.Partition, m.TopicPartition.Offset)
+	}
+
+	close(deliveryChan)
 	return e.exporter(e, buf)
 }
 
