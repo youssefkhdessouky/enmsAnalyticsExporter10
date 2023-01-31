@@ -81,7 +81,7 @@ func (e *enmsAnalyticsExporter) ConsumeTraces(_ context.Context, td ptrace.Trace
 	buf = e.compressor(buf)
 	topic := "records"
 
-	fmt.Println("consuming traces <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	fmt.Errorf("consuming traces <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "192.168.45.34:9092"})
 
 	if err != nil {
