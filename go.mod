@@ -1,4 +1,4 @@
-module main
+module github.com/mohamedtaher567/enmsAnalyticsExporter1
 
 go 1.19
 
