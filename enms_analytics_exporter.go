@@ -31,7 +31,7 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/serde/avro"
 	streamingMessageAvro "avro"
 	"os"
-
+	"go.opentelemetry.io/collector/pdata/pcommon"
 )
 
 // Marshaler configuration used for marhsaling Protobuf
@@ -113,24 +113,38 @@ func (e *enmsAnalyticsExporter) ConsumeTraces(_ context.Context, td ptrace.Trace
 	value.Data = &streamingMessageAvro.UnionNullMapArrayUnionStringNull{}
 	value.Data.UnionType = streamingMessageAvro.UnionNullMapArrayUnionStringNullTypeEnumMapArrayUnionStringNull
 	value.Data.MapArrayUnionStringNull = make(map[string][]*streamingMessageAvro.UnionStringNull)
-	columnNames:= [3]string {"SpanId", "TraceId", "ParentId"}
-	for _, columnName := range columnNames {
-		value.Data.MapArrayUnionStringNull[columnName] = make([]*streamingMessageAvro.UnionStringNull,0)
+	// columnNames:= [3]string {"SpanId", "TraceId", "ParentId"}
+	// for _, columnName := range columnNames {
+	// 	value.Data.MapArrayUnionStringNull[columnName] = make([]*streamingMessageAvro.UnionStringNull,0)
+	// }
+	// spanIds := [4]string {"1", "2", "3", "4"}
+	// traceIds := [4]string {"1", "2", "1", "2"}
+	// parentIds := [4]string {"","1", "1", "2"}
+	// for _, spanId := range spanIds {
+	// 	value.Data.MapArrayUnionStringNull["SpanId"] = append(value.Data.MapArrayUnionStringNull["SpanId"], &streamingMessageAvro.UnionStringNull{String: spanId,
+	// 		 UnionType: streamingMessageAvro.UnionStringNullTypeEnumString,})
+	// }
+	// for _, traceId := range traceIds {
+	// 	value.Data.MapArrayUnionStringNull["TraceId"] = append(value.Data.MapArrayUnionStringNull["TraceId"], &streamingMessageAvro.UnionStringNull{String:traceId,
+	// 		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString,})
+	// }
+	// for _, parentId := range parentIds {
+	// 	value.Data.MapArrayUnionStringNull["ParentId"] = append(value.Data.MapArrayUnionStringNull["ParentId"], &streamingMessageAvro.UnionStringNull{String:parentId,
+	// 		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString,})
+	// }
+	
+
+	close(deliveryChan)
+
+	resourceSpans := td.ResourceSpans()
+
+	if resourceSpans.Len() == 0 {
+		return nil
 	}
-	spanIds := [4]string {"1", "2", "3", "4"}
-	traceIds := [4]string {"1", "2", "1", "2"}
-	parentIds := [4]string {"","1", "1", "2"}
-	for _, spanId := range spanIds {
-		value.Data.MapArrayUnionStringNull["SpanId"] = append(value.Data.MapArrayUnionStringNull["SpanId"], &streamingMessageAvro.UnionStringNull{String: spanId,
-			 UnionType: streamingMessageAvro.UnionStringNullTypeEnumString,})
-	}
-	for _, traceId := range traceIds {
-		value.Data.MapArrayUnionStringNull["TraceId"] = append(value.Data.MapArrayUnionStringNull["TraceId"], &streamingMessageAvro.UnionStringNull{String:traceId,
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString,})
-	}
-	for _, parentId := range parentIds {
-		value.Data.MapArrayUnionStringNull["ParentId"] = append(value.Data.MapArrayUnionStringNull["ParentId"], &streamingMessageAvro.UnionStringNull{String:parentId,
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString,})
+
+	for i := 0; i < resourceSpans.Len(); i++ {
+		rs := resourceSpans.At(i)
+		value.Data.MapArrayUnionStringNull = resourceSpansToJaegerProto(rs)
 	}
 	payload, err := ser.Serialize(topic, &value)
 	if err != nil {
@@ -158,9 +172,64 @@ func (e *enmsAnalyticsExporter) ConsumeTraces(_ context.Context, td ptrace.Trace
 			*m.TopicPartition.Topic, m.TopicPartition.Partition, m.TopicPartition.Offset)
 	}
 
-	close(deliveryChan)
 	return e.exporter(e, buf)
 }
+
+func resourceSpansToJaegerProto(rs ptrace.ResourceSpans) map[string][]*streamingMessageAvro.UnionStringNull {
+	resource := rs.Resource()
+	ilss := rs.ScopeSpans()
+
+	if resource.Attributes().Len() == 0 && ilss.Len() == 0 {
+		return nil
+	}
+	
+	data := make(map[string][]*streamingMessageAvro.UnionStringNull)
+
+	if ilss.Len() == 0 {
+		return data
+	}
+
+	// Approximate the number of the spans as the number of the spans in the first
+	// instrumentation library info.
+	columnNames:= [3]string {"SpanId", "TraceId", "ParentId"}
+	for _, columnName := range columnNames {
+		data[columnName] = make([]*streamingMessageAvro.UnionStringNull,0)
+	}
+	for i := 0; i < ilss.Len(); i++ {
+		ils := ilss.At(i)
+		spans := ils.Spans()
+		for j := 0; j < spans.Len(); j++ {
+			span := spans.At(j)
+			appendToData(span, data)
+	
+		}
+	}
+
+
+	return data
+}
+
+func TraceIDToUInt64Pair(traceID pcommon.TraceID) (uint64, uint64) {
+	return binary.BigEndian.Uint64(traceID[:8]), binary.BigEndian.Uint64(traceID[8:])
+}
+
+func SpanIDToUInt64(spanID pcommon.SpanID) uint64 {
+	return binary.BigEndian.Uint64(spanID[:])
+}
+
+func appendToData(span ptrace.Span, data map[string][]*streamingMessageAvro.UnionStringNull)  {
+	low, high := TraceIDToUInt64Pair(span.TraceID())
+	traceIdString := string(low)+"-" + string(high)
+	startTime := span.StartTimestamp().String()
+	data["SpanId"] = append(data["SpanId"], &streamingMessageAvro.UnionStringNull{String:string(SpanIDToUInt64(span.SpanID())) ,
+		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString,})
+	data["TraceId"] = append(data["TraceId"], &streamingMessageAvro.UnionStringNull{String:traceIdString,
+		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString,})
+
+	data["ParentId"] = append(data["ParentId"], &streamingMessageAvro.UnionStringNull{String:string(SpanIDToUInt64(span.ParentSpanID())),
+		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString,})
+	data["StartTime"] = append(data["StartTime"], &streamingMessageAvro.UnionStringNull{String:string(startTime),
+		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString,})}	
 
 func (e *enmsAnalyticsExporter) ConsumeMetrics(_ context.Context, md pmetric.Metrics) error {
 	buf, err := e.metricsMarshaler.MarshalMetrics(md)
