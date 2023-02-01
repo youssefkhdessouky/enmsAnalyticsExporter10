@@ -134,7 +134,6 @@ func (e *enmsAnalyticsExporter) ConsumeTraces(_ context.Context, td ptrace.Trace
 	// }
 	
 
-	close(deliveryChan)
 
 	resourceSpans := td.ResourceSpans()
 
@@ -171,6 +170,7 @@ func (e *enmsAnalyticsExporter) ConsumeTraces(_ context.Context, td ptrace.Trace
 		fmt.Printf("Delivered message to topic %s [%d] at offset %v\n",
 			*m.TopicPartition.Topic, m.TopicPartition.Partition, m.TopicPartition.Offset)
 	}
+	close(deliveryChan)
 
 	return e.exporter(e, buf)
 }
