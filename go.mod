@@ -1,4 +1,4 @@
-module github.com/mohamedtaher567/enmsAnalyticsExporter6.giter5
+module github.com/mohamedtaher567/enmsAnalyticsExporter6.git
 
 go 1.19
 
