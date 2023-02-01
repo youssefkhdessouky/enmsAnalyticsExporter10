@@ -32,6 +32,7 @@ import (
 	streamingMessageAvro "avro"
 	"os"
 	"go.opentelemetry.io/collector/pdata/pcommon"
+	"strconv"
 )
 
 // Marshaler configuration used for marhsaling Protobuf
@@ -221,12 +222,12 @@ func appendToData(span ptrace.Span, data map[string][]*streamingMessageAvro.Unio
 	low, high := TraceIDToUInt64Pair(span.TraceID())
 	traceIdString := string(low)+"-" + string(high)
 	startTime := span.StartTimestamp().String()
-	data["SpanId"] = append(data["SpanId"], &streamingMessageAvro.UnionStringNull{String:string(SpanIDToUInt64(span.SpanID())) ,
+	data["SpanId"] = append(data["SpanId"], &streamingMessageAvro.UnionStringNull{String:strconv.FormatUint(SpanIDToUInt64(span.SpanID()), 10) ,
 		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString,})
 	data["TraceId"] = append(data["TraceId"], &streamingMessageAvro.UnionStringNull{String:traceIdString,
 		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString,})
 
-	data["ParentId"] = append(data["ParentId"], &streamingMessageAvro.UnionStringNull{String:string(SpanIDToUInt64(span.ParentSpanID())),
+	data["ParentId"] = append(data["ParentId"], &streamingMessageAvro.UnionStringNull{String:strconv.FormatUint(SpanIDToUInt64(span.ParentSpanID()), 10),
 		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString,})
 	data["StartTime"] = append(data["StartTime"], &streamingMessageAvro.UnionStringNull{String:string(startTime),
 		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString,})}	
