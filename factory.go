@@ -72,6 +72,7 @@ func createTracesExporter(
 	fe := exporters.GetOrAdd(cfg, func() component.Component {
 		return newFileExporter(conf, writer)
 	})
+	fmt.Println("traces exporter created")
 	return exporterhelper.NewTracesExporter(
 		ctx,
 		set,

@@ -75,6 +75,7 @@ func (e *enmsAnalyticsExporter) Capabilities() consumer.Capabilities {
 }
 
 func (e *enmsAnalyticsExporter) ConsumeTraces(_ context.Context, td ptrace.Traces) error {
+
 	buf, err := e.tracesMarshaler.MarshalTraces(td)
 	if err != nil {
 		return err
@@ -82,7 +83,7 @@ func (e *enmsAnalyticsExporter) ConsumeTraces(_ context.Context, td ptrace.Trace
 	buf = e.compressor(buf)
 	topic := "records"
 
-	fmt.Errorf("consuming traces <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	fmt.Println("consuming traces <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "192.168.45.34:9092"})
 
 	if err != nil {
