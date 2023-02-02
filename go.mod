@@ -15,6 +15,7 @@ require (
 )
 
 require (
+
 	github.com/actgardner/gogen-avro/v10 v10.2.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -43,3 +44,4 @@ require (
 	google.golang.org/grpc v1.52.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 )
+

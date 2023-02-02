@@ -1,0 +1,354 @@
+{
+    "type": "record",
+    "name": "StreamDataRecordMessage",
+    "namespace": "com.eventumsolutions.nms.kafka.messages.streaming",
+    "fields": [{
+            "name": "collectionType",
+            "type": ["null", "string"],
+            "default": null
+        }, {
+            "name": "data",
+            "type": ["null", {
+                    "type": "map",
+                    "values": {
+                        "type": "array",
+                        "items": ["string", "null"]
+                    }
+                }
+            ],
+            "default": null
+        }, {
+            "name": "preGroupingFilter",
+            "type": ["null", "string"],
+            "default": null
+        }, {
+            "name": "keyMappings",
+            "type": ["null", {
+                    "type": "map",
+                    "values": "string"
+                }
+            ],
+            "default": null
+        }, {
+            "name": "formulaAttributeMappings",
+            "type": ["null", {
+                    "type": "map",
+                    "values": "string"
+                }
+            ],
+            "default": null
+        }, {
+            "name": "columnIdentifierMappings",
+            "type": ["null", {
+                    "type": "map",
+                    "values": "string"
+                }
+            ],
+            "default": null
+        }, {
+            "name": "appliedNetworkElement",
+            "type": ["null", "long"],
+            "default": null
+        }, {
+            "name": "schedulingTimestamp",
+            "type": ["null", "long"],
+            "default": null
+        }, {
+            "name": "dateTimeColumnFormats",
+            "type": ["null", {
+                    "type": "array",
+                    "items": {
+                        "type": "record",
+                        "name": "DateTimeColumnFormatDTO",
+                        "fields": [{
+                                "name": "columnName",
+                                "type": ["null", "string"],
+                                "default": null
+                            }, {
+                                "name": "format",
+                                "type": ["null", "string"],
+                                "default": null
+                            }
+                        ]
+                    }
+                }
+            ],
+            "default": null
+        }, {
+            "name": "discoveryJob",
+            "type": ["null", "boolean"],
+            "default": null
+        }, {
+            "name": "deleteOldElements",
+            "type": ["null", "boolean"],
+            "default": null
+        }, {
+            "name": "dataPath",
+            "type": ["null", "string"],
+            "default": null
+        }, {
+            "name": "fileType",
+            "type": ["null", "string"],
+            "default": null
+        }, {
+            "name": "preGroupingFormulaColumnMappings",
+            "type": ["null", {
+                    "type": "map",
+                    "values": "string"
+                }
+            ],
+            "default": null
+        }, {
+            "name": "attributeBindingName",
+            "type": ["null", "string"],
+            "default": null
+        }, {
+            "name": "pushBasedMessage",
+            "type": ["null", "boolean"],
+            "default": null
+        }, {
+            "name": "record",
+            "type": ["null", "boolean"],
+            "default": null
+        }, {
+            "name": "recordTypeName",
+            "type": ["null", "string"],
+            "default": null
+        }, {
+            "name": "deleteNetworkElement",
+            "type": ["null", "boolean"],
+            "default": null
+        }, {
+            "name": "refValueMappings",
+            "type": ["null", {
+                    "type": "map",
+                    "values": {
+                        "type": "record",
+                        "name": "RefValueMappingDTO",
+                        "fields": [{
+                                "name": "treeNode",
+                                "type": ["null", "long"],
+                                "default": null
+                            }, {
+                                "name": "keyMappings",
+                                "type": ["null", {
+                                        "type": "map",
+                                        "values": "string"
+                                    }
+                                ],
+                                "default": null
+                            }, {
+                                "name": "useAppliedNetworkElement",
+                                "type": "boolean",
+                                "default": false
+                            }
+                        ]
+                    }
+                }
+            ],
+            "default": null
+        }, {
+            "name": "allowGrouping",
+            "type": ["null", "boolean"],
+            "default": null
+        }, {
+            "name": "discoverAccessMethods",
+            "type": ["null", "boolean"],
+            "default": null
+        }, {
+            "name": "LastValueExpressionParam",
+            "type": ["null", {
+                    "type": "map",
+                    "values": "int"
+                }
+            ],
+            "default": null
+        }, {
+            "name": "appliedNetworkElementPath",
+            "type": ["null", {
+                    "type": "map",
+                    "values": "long"
+                }
+            ],
+            "default": null
+        }, {
+            "name": "appliedNetworkElementTreePath",
+            "type": ["null", "string"],
+            "default": null
+        }, {
+            "name": "postGroupingFilter",
+            "type": ["null", "string"],
+            "default": null
+        }, {
+            "name": "postGroupingFormulaColumnMappings",
+            "type": ["null", {
+                    "type": "map",
+                    "values": "string"
+                }
+            ],
+            "default": null
+        }, {
+            "name": "postRecordLastValueExpression",
+            "type": ["null", {
+                    "type": "array",
+                    "items": {
+                        "type": "record",
+                        "name": "RecordLastValueExpresssionDTO",
+                        "fields": [{
+                                "name": "recordFieldExpression",
+                                "type": ["null", {
+                                        "type": "map",
+                                        "values": "long"
+                                    }
+                                ],
+                                "default": null
+                            }, {
+                                "name": "keyGroup",
+                                "type": ["null", {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "map",
+                                            "values": "string"
+                                        }
+                                    }
+                                ],
+                                "default": null
+                            }, {
+                                "name": "recordTypeId",
+                                "type": ["null", "long"],
+                                "default": null
+                            }, {
+                                "name": "allDataExists",
+                                "type": ["null", "boolean"],
+                                "default": null
+                            }, {
+                                "name": "isAttributeRecordType",
+                                "type": "boolean",
+                                "default": false
+                            }, {
+                                "name": "fromKeyMapping",
+                                "type": "boolean",
+                                "default": false
+                            }
+                        ]
+                    }
+                }
+            ],
+            "default": null
+        }, {
+            "name": "preRecordLastValueExpression",
+            "type": ["null", {
+                    "type": "array",
+                    "items": "RecordLastValueExpresssionDTO"
+                }
+            ],
+            "default": null
+        }, {
+            "name": "collectionTimestamp",
+            "type": ["null", "long"],
+            "default": null
+        }, {
+            "name": "dataflowName",
+            "type": ["null", "string"],
+            "default": null
+        }, {
+            "name": "groupingColumns",
+            "type": ["null", {
+                    "type": "array",
+                    "items": "string"
+                }
+            ],
+            "default": null
+        }, {
+            "name": "formulaFieldsMappings",
+            "type": ["null", {
+                    "type": "map",
+                    "values": "string"
+                }
+            ],
+            "default": null
+        }, {
+            "name": "columnIdentifierFieldsMappings",
+            "type": ["null", {
+                    "type": "map",
+                    "values": "string"
+                }
+            ],
+            "default": null
+        }, {
+            "name": "refValueFieldsMappings",
+            "type": ["null", {
+                    "type": "map",
+                    "values": "RefValueMappingDTO"
+                }
+            ],
+            "default": null
+        }, {
+            "name": "refPostProcessing",
+            "type": ["null", {
+                    "type": "map",
+                    "values": "RefValueMappingDTO"
+                }
+            ],
+            "default": null
+        }, {
+            "name": "directKeyMappings",
+            "type": ["null", {
+                    "type": "map",
+                    "values": "string"
+                }
+            ],
+            "default": null
+        }, {
+            "name": "refKeyMappings",
+            "type": ["null", {
+                    "type": "map",
+                    "values": "RefValueMappingDTO"
+                }
+            ],
+            "default": null
+        }, {
+            "name": "collectionProfileName",
+            "type": ["null", "string"],
+            "default": null
+        }, {
+            "name": "eventable",
+            "type": "boolean",
+            "default": true
+        }, {
+            "name": "collectionCategory",
+            "type": ["null", "string"],
+            "default": null
+        }, {
+            "name": "sqlRecordTypes",
+            "type": ["null", {
+                    "type": "array",
+                    "items": "long"
+                }
+            ],
+            "default": null
+        }, {
+            "name": "sqlAttributeBindingDataDtos",
+            "type": ["null", {
+                    "type": "array",
+                    "items": {
+                        "type": "record",
+                        "name": "SqlAttributeBindingDataDto",
+                        "namespace": "com.eventumsolutions.nms.dto",
+                        "fields": [{
+                                "name": "tableName",
+                                "type": ["null", "string"],
+                                "default": null
+                            }, {
+                                "name": "query",
+                                "type": ["null", "string"],
+                                "default": null
+                            }
+                        ]
+                    }
+                }
+            ],
+            "default": null
+        }
+    ]
+}

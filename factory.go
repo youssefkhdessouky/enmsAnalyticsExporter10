@@ -18,7 +18,7 @@ import (
 	"context"
 	"io"
 	"os"
-	"fmt"
+
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
@@ -72,7 +72,6 @@ func createTracesExporter(
 	fe := exporters.GetOrAdd(cfg, func() component.Component {
 		return newFileExporter(conf, writer)
 	})
-	fmt.Println("traces exporter created")
 	return exporterhelper.NewTracesExporter(
 		ctx,
 		set,
