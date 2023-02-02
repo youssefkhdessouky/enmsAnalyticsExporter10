@@ -18,7 +18,7 @@ import (
 	"context"
 	"io"
 	"os"
-
+	"fmt"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
