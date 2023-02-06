@@ -123,16 +123,19 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		MetricTypeData += string(u)
 		//appendNumberDataPoints(points.DataPoints(), data)
 		MetricTypeData += " }"
+
 	case pmetric.MetricTypeHistogram:
 		points := m.Histogram()
 		//data["AggregationTemporality"] = append(data["AggregationTemporality"], &streamingMessageAvro.UnionStringNull{String: points.AggregationTemporality().String(),
 		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
-		MetricTypeData += "{ AggregationTemporality : " + points.AggregationTemporality().String() + ", "
+		MetricTypeData += "{ IsMonotonic : " + "" + ", "
+		MetricTypeData += "AggregationTemporality : " + points.AggregationTemporality().String() + ", "
 		u, err := json.Marshal(points.DataPoints())
 		if err != nil {
 			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
 		}
 		MetricTypeData += string(u)
+
 		MetricTypeData += "}"
 		//appendHistogramDataPoints(points.DataPoints(), data)
 	case pmetric.MetricTypeExponentialHistogram:
@@ -155,6 +158,7 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		MetricTypeData += string(u)
 		//appendDoubleSummaryDataPoints(m.Summary().DataPoints(), data)
 	}
+	fmt.Println(MetricTypeData)
 	data["MetricTypeData"] = append(data["MetricTypeData"], &streamingMessageAvro.UnionStringNull{String: MetricTypeData,
 		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
@@ -572,7 +576,7 @@ func (e *enmsAnalyticsExporter) ConsumeMetrics(_ context.Context, md pmetric.Met
 	buf = e.compressor(buf)
 	topic := "records"
 
-	fmt.Errorf("consuming traces <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	fmt.Errorf("consuming Traces <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "192.168.45.34:9092"})
 
 	if err != nil {
