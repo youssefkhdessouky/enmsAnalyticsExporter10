@@ -17,6 +17,7 @@ package enmsAnalyticsExporter // import "github.com/open-telemetry/opentelemetry
 import (
 	"context"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
@@ -86,6 +87,7 @@ func MarshalMetrics(md pmetric.Metrics) map[string][]*streamingMessageAvro.Union
 				metric := metrics.At(k)
 				appendMetricDescriptons(metric, data)
 				appendMetricDataPoints(metric, data)
+
 			}
 		}
 	}
@@ -100,16 +102,15 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		break
 	case pmetric.MetricTypeGauge:
 
-		pts := m.Gauge().DataPoints()
-		for i := 0; i < pts.Len(); i++ {
-			at := pts.At(i)
-			a := &at
-			fmt.Println("this is a -----" + fmt.Sprintf("%+v", a))
-			fmt.Println("this is AT ===== " + fmt.Sprintf("%+v", at))
-			u += fmt.Sprintf("%+v", a)
-
+		points := m.Gauge()
+		tmp := &points
+		pts := tmp.DataPoints()
+		pts_tmp := &pts
+		u, err := json.Marshal(pts_tmp)
+		if err != nil {
+			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
 		}
-		MetricTypeData += u
+		MetricTypeData += string(u)
 
 		//appendNumberDataPoints(m.Gauge().DataPoints().At(), data)
 	case pmetric.MetricTypeSum:
@@ -126,36 +127,33 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		//if err != nil {
 		//	fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
 		//}
-		pts := points.DataPoints()
-		for i := 0; i < pts.Len(); i++ {
-			at := pts.At(i)
-			a := &at
-			fmt.Println("this is a -----" + fmt.Sprintf("%+v", a))
-			fmt.Println("this is AT ===== " + fmt.Sprintf("%+v", at))
-			u += fmt.Sprintf("%+v", a)
-
+		tmp := points
+		pts := tmp.DataPoints()
+		pts_tmp := &pts
+		u, err := json.Marshal(pts_tmp)
+		if err != nil {
+			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
 		}
-		MetricTypeData += u
+		MetricTypeData += string(u)
 
 		//appendNumberDataPoints(points.DataPoints(), data)
 		MetricTypeData += " }"
 
 	case pmetric.MetricTypeHistogram:
 		points := m.Histogram()
+		tmp := &points
 		//data["AggregationTemporality"] = append(data["AggregationTemporality"], &streamingMessageAvro.UnionStringNull{String: points.AggregationTemporality().String(),
 		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		MetricTypeData += "{ IsMonotonic : " + "" + ", "
 		MetricTypeData += "AggregationTemporality : " + points.AggregationTemporality().String() + ", "
-		pts := points.DataPoints()
-		for i := 0; i < pts.Len(); i++ {
-			at := pts.At(i)
-			a := &at
-			fmt.Println("this is a -----" + fmt.Sprintf("%+v", a))
-			fmt.Println("this is AT ===== " + fmt.Sprintf("%+v", at))
-			u += fmt.Sprintf("%+v", a)
 
+		pts := tmp.DataPoints()
+		pts_tmp := &pts
+		u, err := json.Marshal(pts_tmp)
+		if err != nil {
+			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
 		}
-		MetricTypeData += u
+		MetricTypeData += string(u)
 
 		MetricTypeData += "}"
 		//appendHistogramDataPoints(points.DataPoints(), data)
@@ -164,35 +162,33 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		MetricTypeData += "{ AggregationTemporality : " + points.AggregationTemporality().String() + ", "
 		//data["AggregationTemporality"] = append(data["AggregationTemporality"], &streamingMessageAvro.UnionStringNull{String: points.AggregationTemporality().String(),
 		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
-		pts := points.DataPoints()
-		for i := 0; i < pts.Len(); i++ {
-			at := pts.At(i)
-			a := &at
-			fmt.Println("this is a -----" + fmt.Sprintf("%+v", a))
-			fmt.Println("this is AT ===== " + fmt.Sprintf("%+v", at))
-			u += fmt.Sprintf("%+v", a)
-
+		tmp := &points
+		pts := tmp.DataPoints()
+		pts_tmp := &pts
+		u, err := json.Marshal(pts_tmp)
+		if err != nil {
+			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
 		}
-		MetricTypeData += u
+		MetricTypeData += string(u)
 		//appendExponentialHistogramDataPoints(points.DataPoints(), data)
 		MetricTypeData += "}"
 	case pmetric.MetricTypeSummary:
 
-		pts := m.Summary().DataPoints()
-		for i := 0; i < pts.Len(); i++ {
-			at := pts.At(i)
-			a := &at
-			fmt.Println("this is a -----" + fmt.Sprintf("%+v", a))
-			fmt.Println("this is AT ===== " + fmt.Sprintf("%+v", at))
-			u += fmt.Sprintf("%+v", a)
+		points := m.Summary()
 
+		tmp := &points
+		pts := tmp.DataPoints()
+		pts_tmp := &pts
+		u, err := json.Marshal(pts_tmp)
+		if err != nil {
+			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
 		}
-		MetricTypeData += u
+		MetricTypeData += string(u)
 
 		//appendDoubleSummaryDataPoints(m.Summary().DataPoints(), data)
 	}
-	fmt.Println(u)
-	data["MetricTypeData"] = append(data["MetricTypeData"], &streamingMessageAvro.UnionStringNull{String: MetricTypeData,
+	fmt.Println(string(u))
+	data["Metric_value"] = append(data["Metric_value"], &streamingMessageAvro.UnionStringNull{String: MetricTypeData,
 		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
 }
