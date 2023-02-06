@@ -102,7 +102,9 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 
 		pts := m.Gauge().DataPoints()
 		for i := 0; i < pts.Len(); i++ {
-			u += fmt.Sprintf("%v", pts.At(i))
+			at := pts.At(i)
+			fmt.Println(at)
+			u += fmt.Sprintf("%v", at)
 		}
 		MetricTypeData += u
 
@@ -123,7 +125,9 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		//}
 		pts := points.DataPoints()
 		for i := 0; i < pts.Len(); i++ {
-			u += fmt.Sprintf("%v", pts.At(i))
+			at := pts.At(i)
+			fmt.Println(at)
+			u += fmt.Sprintf("%v", at)
 		}
 		MetricTypeData += u
 
@@ -138,7 +142,9 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		MetricTypeData += "AggregationTemporality : " + points.AggregationTemporality().String() + ", "
 		pts := points.DataPoints()
 		for i := 0; i < pts.Len(); i++ {
-			u += fmt.Sprintf("%v", pts.At(i))
+			at := pts.At(i)
+			fmt.Println(at)
+			u += fmt.Sprintf("%v", at)
 		}
 		MetricTypeData += u
 
@@ -151,7 +157,9 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		pts := points.DataPoints()
 		for i := 0; i < pts.Len(); i++ {
-			u += fmt.Sprintf("%v", pts.At(i))
+			at := pts.At(i)
+			fmt.Println(at)
+			u += fmt.Sprintf("%v", at(i))
 		}
 		MetricTypeData += u
 		//appendExponentialHistogramDataPoints(points.DataPoints(), data)
@@ -160,7 +168,9 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 
 		pts := m.Summary().DataPoints()
 		for i := 0; i < pts.Len(); i++ {
-			u += fmt.Sprintf("%v", pts.At(i))
+			at := pts.At(i)
+			fmt.Println(at)
+			u += fmt.Sprintf("%v", at)
 		}
 		MetricTypeData += u
 
