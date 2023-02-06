@@ -104,6 +104,7 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
 		}
 		MetricTypeData += string(u)
+		fmt.Println(u)
 
 		//appendNumberDataPoints(m.Gauge().DataPoints().At(), data)
 	case pmetric.MetricTypeSum:
@@ -121,6 +122,8 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
 		}
 		MetricTypeData += string(u)
+		fmt.Println(u)
+
 		//appendNumberDataPoints(points.DataPoints(), data)
 		MetricTypeData += " }"
 
@@ -135,6 +138,7 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
 		}
 		MetricTypeData += string(u)
+		fmt.Println(u)
 
 		MetricTypeData += "}"
 		//appendHistogramDataPoints(points.DataPoints(), data)
@@ -148,6 +152,7 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
 		}
 		MetricTypeData += string(u)
+		fmt.Println(u)
 		//appendExponentialHistogramDataPoints(points.DataPoints(), data)
 		MetricTypeData += "}"
 	case pmetric.MetricTypeSummary:
@@ -156,9 +161,11 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
 		}
 		MetricTypeData += string(u)
+		fmt.Println(u)
+
 		//appendDoubleSummaryDataPoints(m.Summary().DataPoints(), data)
 	}
-	fmt.Println(MetricTypeData)
+
 	data["MetricTypeData"] = append(data["MetricTypeData"], &streamingMessageAvro.UnionStringNull{String: MetricTypeData,
 		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
