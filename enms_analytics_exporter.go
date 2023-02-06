@@ -159,7 +159,7 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		for i := 0; i < pts.Len(); i++ {
 			at := pts.At(i)
 			fmt.Println(at)
-			u += fmt.Sprintf("%v", at(i))
+			u += fmt.Sprintf("%v", at)
 		}
 		MetricTypeData += u
 		//appendExponentialHistogramDataPoints(points.DataPoints(), data)
