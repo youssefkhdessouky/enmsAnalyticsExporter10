@@ -17,7 +17,6 @@ package enmsAnalyticsExporter // import "github.com/open-telemetry/opentelemetry
 import (
 	"context"
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
@@ -95,16 +94,17 @@ func MarshalMetrics(md pmetric.Metrics) map[string][]*streamingMessageAvro.Union
 }
 func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessageAvro.UnionStringNull) {
 	var MetricTypeData string = ""
+	u := ""
 	switch m.Type() {
 	case pmetric.MetricTypeEmpty:
 		break
 	case pmetric.MetricTypeGauge:
-		u, err := json.Marshal(m.Gauge().DataPoints())
-		if err != nil {
-			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
+
+		pts := m.Gauge().DataPoints()
+		for i := 0; i < pts.Len(); i++ {
+			u += fmt.Sprintf("%v", pts.At(i))
 		}
-		MetricTypeData += string(u)
-		fmt.Println(u)
+		MetricTypeData += u
 
 		//appendNumberDataPoints(m.Gauge().DataPoints().At(), data)
 	case pmetric.MetricTypeSum:
@@ -117,12 +117,15 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		//
 		//data["AggregationTemporality"] = append(data["AggregationTemporality"], &streamingMessageAvro.UnionStringNull{String: points.AggregationTemporality().String(),
 		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
-		u, err := json.Marshal(points.DataPoints())
-		if err != nil {
-			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
+		//u, err := json.Marshal(points.DataPoints())
+		//if err != nil {
+		//	fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
+		//}
+		pts := points.DataPoints()
+		for i := 0; i < pts.Len(); i++ {
+			u += fmt.Sprintf("%v", pts.At(i))
 		}
-		MetricTypeData += string(u)
-		fmt.Println(u)
+		MetricTypeData += u
 
 		//appendNumberDataPoints(points.DataPoints(), data)
 		MetricTypeData += " }"
@@ -133,12 +136,11 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		MetricTypeData += "{ IsMonotonic : " + "" + ", "
 		MetricTypeData += "AggregationTemporality : " + points.AggregationTemporality().String() + ", "
-		u, err := json.Marshal(points.DataPoints())
-		if err != nil {
-			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
+		pts := points.DataPoints()
+		for i := 0; i < pts.Len(); i++ {
+			u += fmt.Sprintf("%v", pts.At(i))
 		}
-		MetricTypeData += string(u)
-		fmt.Println(u)
+		MetricTypeData += u
 
 		MetricTypeData += "}"
 		//appendHistogramDataPoints(points.DataPoints(), data)
@@ -147,25 +149,24 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		MetricTypeData += "{ AggregationTemporality : " + points.AggregationTemporality().String() + ", "
 		//data["AggregationTemporality"] = append(data["AggregationTemporality"], &streamingMessageAvro.UnionStringNull{String: points.AggregationTemporality().String(),
 		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
-		u, err := json.Marshal(points.DataPoints())
-		if err != nil {
-			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
+		pts := points.DataPoints()
+		for i := 0; i < pts.Len(); i++ {
+			u += fmt.Sprintf("%v", pts.At(i))
 		}
-		MetricTypeData += string(u)
-		fmt.Println(u)
+		MetricTypeData += u
 		//appendExponentialHistogramDataPoints(points.DataPoints(), data)
 		MetricTypeData += "}"
 	case pmetric.MetricTypeSummary:
-		u, err := json.Marshal(m.Summary().DataPoints())
-		if err != nil {
-			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
+
+		pts := m.Summary().DataPoints()
+		for i := 0; i < pts.Len(); i++ {
+			u += fmt.Sprintf("%v", pts.At(i))
 		}
-		MetricTypeData += string(u)
-		fmt.Println(u)
+		MetricTypeData += u
 
 		//appendDoubleSummaryDataPoints(m.Summary().DataPoints(), data)
 	}
-
+	fmt.Println(u)
 	data["MetricTypeData"] = append(data["MetricTypeData"], &streamingMessageAvro.UnionStringNull{String: MetricTypeData,
 		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
