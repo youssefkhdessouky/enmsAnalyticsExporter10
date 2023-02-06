@@ -103,8 +103,11 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		pts := m.Gauge().DataPoints()
 		for i := 0; i < pts.Len(); i++ {
 			at := pts.At(i)
-			fmt.Println(at)
-			u += fmt.Sprintf("%v", at)
+			a := &at
+			fmt.Println("this is a -----" + fmt.Sprintf("%+v", a))
+			fmt.Println("this is AT ===== " + fmt.Sprintf("%+v", at))
+			u += fmt.Sprintf("%+v", a)
+
 		}
 		MetricTypeData += u
 
@@ -126,8 +129,11 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		pts := points.DataPoints()
 		for i := 0; i < pts.Len(); i++ {
 			at := pts.At(i)
-			fmt.Println(at)
-			u += fmt.Sprintf("%v", at)
+			a := &at
+			fmt.Println("this is a -----" + fmt.Sprintf("%+v", a))
+			fmt.Println("this is AT ===== " + fmt.Sprintf("%+v", at))
+			u += fmt.Sprintf("%+v", a)
+
 		}
 		MetricTypeData += u
 
@@ -143,8 +149,11 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		pts := points.DataPoints()
 		for i := 0; i < pts.Len(); i++ {
 			at := pts.At(i)
-			fmt.Println(at)
-			u += fmt.Sprintf("%v", at)
+			a := &at
+			fmt.Println("this is a -----" + fmt.Sprintf("%+v", a))
+			fmt.Println("this is AT ===== " + fmt.Sprintf("%+v", at))
+			u += fmt.Sprintf("%+v", a)
+
 		}
 		MetricTypeData += u
 
@@ -158,8 +167,11 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		pts := points.DataPoints()
 		for i := 0; i < pts.Len(); i++ {
 			at := pts.At(i)
-			fmt.Println(at)
-			u += fmt.Sprintf("%v", at)
+			a := &at
+			fmt.Println("this is a -----" + fmt.Sprintf("%+v", a))
+			fmt.Println("this is AT ===== " + fmt.Sprintf("%+v", at))
+			u += fmt.Sprintf("%+v", a)
+
 		}
 		MetricTypeData += u
 		//appendExponentialHistogramDataPoints(points.DataPoints(), data)
@@ -169,8 +181,11 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		pts := m.Summary().DataPoints()
 		for i := 0; i < pts.Len(); i++ {
 			at := pts.At(i)
-			fmt.Println(at)
-			u += fmt.Sprintf("%v", at)
+			a := &at
+			fmt.Println("this is a -----" + fmt.Sprintf("%+v", a))
+			fmt.Println("this is AT ===== " + fmt.Sprintf("%+v", at))
+			u += fmt.Sprintf("%+v", a)
+
 		}
 		MetricTypeData += u
 
