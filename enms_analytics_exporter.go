@@ -132,7 +132,7 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		pts_tmp := &pts
 		u, err := json.Marshal(pts_tmp)
 		if err != nil {
-			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
+			fmt.Println("Error marshalling " + pmetric.MetricTypeSum.String())
 		}
 		MetricTypeData += string(u)
 
@@ -151,7 +151,7 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		pts_tmp := &pts
 		u, err := json.Marshal(pts_tmp)
 		if err != nil {
-			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
+			fmt.Println("Error marshalling " + pmetric.MetricTypeHistogram.String())
 		}
 		MetricTypeData += string(u)
 
@@ -167,7 +167,7 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		pts_tmp := &pts
 		u, err := json.Marshal(pts_tmp)
 		if err != nil {
-			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
+			fmt.Println("Error marshalling " + pmetric.MetricTypeExponentialHistogram.String())
 		}
 		MetricTypeData += string(u)
 		//appendExponentialHistogramDataPoints(points.DataPoints(), data)
@@ -181,7 +181,7 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		pts_tmp := &pts
 		u, err := json.Marshal(pts_tmp)
 		if err != nil {
-			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
+			fmt.Println("Error marshalling " + pmetric.MetricTypeSummary.String())
 		}
 		MetricTypeData += string(u)
 
