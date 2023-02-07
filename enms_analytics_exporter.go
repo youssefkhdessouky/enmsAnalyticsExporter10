@@ -447,6 +447,7 @@ func appendHistogramDataPoints(ps pmetric.HistogramDataPointSlice) string {
 		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
 	}
+	pts_data += " }"
 	return pts_data
 }
 
