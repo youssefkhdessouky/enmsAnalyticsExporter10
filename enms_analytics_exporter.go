@@ -17,7 +17,6 @@ package enmsAnalyticsExporter // import "github.com/open-telemetry/opentelemetry
 import (
 	"context"
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
@@ -136,12 +135,8 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		MetricTypeData += "AggregationTemporality : " + points.AggregationTemporality().String() + ", "
 
 		pts := tmp.DataPoints()
-		pts_tmp := &pts
-		u, err := json.Marshal(pts_tmp)
-		if err != nil {
-			fmt.Println("Error marshalling " + pmetric.MetricTypeHistogram.String())
-		}
-		MetricTypeData += string(u)
+
+		MetricTypeData += appendHistogramDataPoints(pts)
 
 		MetricTypeData += "}"
 		//appendHistogramDataPoints(points.DataPoints(), data)
@@ -254,7 +249,7 @@ func appendDoubleSummaryDataPoints(ps pmetric.SummaryDataPointSlice) string {
 		quan_data := "{ QuantileValues : ["
 		for i := 0; i < quantiles.Len(); i++ {
 			quantile := quantiles.At(i)
-			if (i+1 != quantiles.Len()) {
+			if i+1 != quantiles.Len() {
 				quan_data += "{ " + strconv.FormatFloat(quantile.Quantile(), 'f', -1, 64) + " : " + strconv.FormatFloat(quantile.Value(), 'f', -1, 64) + " }, "
 			} else {
 				quan_data += "{ " + strconv.FormatFloat(quantile.Quantile(), 'f', -1, 64) + " : " + strconv.FormatFloat(quantile.Value(), 'f', -1, 64) + " } "
@@ -264,7 +259,7 @@ func appendDoubleSummaryDataPoints(ps pmetric.SummaryDataPointSlice) string {
 
 		}
 		quan_data += " ] }"
-		if (i+1 != ps.Len()) {
+		if i+1 != ps.Len() {
 			pts_data += quan_data + " ,"
 		} else {
 			pts_data += quan_data
@@ -381,7 +376,7 @@ func appendExponentialHistogramDataPoints(ps pmetric.ExponentialHistogramDataPoi
 			//data[position] = append(data[position], &streamingMessageAvro.UnionStringNull{String: count,
 			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		}
-		if (i+1 != ps.Len()) {
+		if i+1 != ps.Len() {
 			pts_data += pts_expo + ", "
 		} else {
 			pts_data += pts_expo
@@ -447,7 +442,7 @@ func appendHistogramDataPoints(ps pmetric.HistogramDataPointSlice) string {
 
 		pts_data += "{ Buckets : " + arrayUInt64ToString(p.BucketCounts().AsRaw()) + " }"
 
-		if (i+1 != ps.Len()) {
+		if i+1 != ps.Len() {
 			pts_data += ", "
 		}
 		//data["Buckets"] = append(data["Buckets"], &streamingMessageAvro.UnionStringNull{String: arrayUInt64ToString(p.BucketCounts().AsRaw()),
