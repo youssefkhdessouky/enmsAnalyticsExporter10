@@ -107,7 +107,7 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 
 	case pmetric.MetricTypeSum:
 		points := m.Sum()
-		MetricTypeData += "{ IsMonotonic : " + strconv.FormatBool(points.IsMonotonic()) + ", "
+		MetricTypeData += "[ IsMonotonic : " + strconv.FormatBool(points.IsMonotonic()) + ", "
 		MetricTypeData += "AggregationTemporality : " + points.AggregationTemporality().String() + ", "
 
 		//data["IsMonotonic"] = append(data["IsMonotonic"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatBool(points.IsMonotonic()),
@@ -124,31 +124,31 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		MetricTypeData += appendNumberDataPoints(pts)
 
 		//appendNumberDataPoints(points.DataPoints(), data)
-		MetricTypeData += " }"
+		MetricTypeData += " ]"
 
 	case pmetric.MetricTypeHistogram:
 		points := m.Histogram()
 		tmp := &points
 		//data["AggregationTemporality"] = append(data["AggregationTemporality"], &streamingMessageAvro.UnionStringNull{String: points.AggregationTemporality().String(),
 		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
-		MetricTypeData += "{ IsMonotonic : " + "" + ", "
+		MetricTypeData += "[ IsMonotonic : " + "" + ", "
 		MetricTypeData += "AggregationTemporality : " + points.AggregationTemporality().String() + ", "
 
 		pts := tmp.DataPoints()
 
 		MetricTypeData += appendHistogramDataPoints(pts)
 
-		MetricTypeData += "}"
+		MetricTypeData += "]"
 		//appendHistogramDataPoints(points.DataPoints(), data)
 	case pmetric.MetricTypeExponentialHistogram:
 		points := m.ExponentialHistogram()
-		MetricTypeData += "{ AggregationTemporality : " + points.AggregationTemporality().String() + ", "
+		MetricTypeData += "[ AggregationTemporality : " + points.AggregationTemporality().String() + ", "
 		//data["AggregationTemporality"] = append(data["AggregationTemporality"], &streamingMessageAvro.UnionStringNull{String: points.AggregationTemporality().String(),
 		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		pts := points.DataPoints()
 		MetricTypeData += appendExponentialHistogramDataPoints(pts)
 		//appendExponentialHistogramDataPoints(points.DataPoints(), data)
-		MetricTypeData += " }"
+		MetricTypeData += " ]"
 	case pmetric.MetricTypeSummary:
 
 		points := m.Summary()
@@ -222,8 +222,6 @@ func appendDoubleSummaryDataPoints(ps pmetric.SummaryDataPointSlice) string {
 
 		p := ps.At(i)
 		pts_data += " { SummaryDataPoints : " + strconv.Itoa(i) + " }, "
-		//data["SummaryDataPoints"] = append(data["SummaryDataPoints"], &streamingMessageAvro.UnionStringNull{String: strconv.Itoa(i),
-		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
 		pts_data += appendDataPointAttributes(p.Attributes())
 
