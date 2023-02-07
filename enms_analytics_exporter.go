@@ -96,23 +96,16 @@ func MarshalMetrics(md pmetric.Metrics) map[string][]*streamingMessageAvro.Union
 }
 func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessageAvro.UnionStringNull) {
 	var MetricTypeData string = ""
-	u := ""
+
 	switch m.Type() {
 	case pmetric.MetricTypeEmpty:
 		break
 	case pmetric.MetricTypeGauge:
 
 		points := m.Gauge()
-		tmp := &points
-		pts := tmp.DataPoints()
-		pts_tmp := &pts
-		u, err := json.Marshal(pts_tmp)
-		if err != nil {
-			fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
-		}
-		MetricTypeData += string(u)
+		pts := points.DataPoints()
+		MetricTypeData += appendNumberDataPoints(pts)
 
-		//appendNumberDataPoints(m.Gauge().DataPoints().At(), data)
 	case pmetric.MetricTypeSum:
 		points := m.Sum()
 		MetricTypeData += "{ IsMonotonic : " + strconv.FormatBool(points.IsMonotonic()) + ", "
@@ -127,14 +120,9 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		//if err != nil {
 		//	fmt.Println("Error marshalling " + pmetric.MetricTypeGauge.String())
 		//}
-		tmp := points
-		pts := tmp.DataPoints()
-		pts_tmp := &pts
-		u, err := json.Marshal(pts_tmp)
-		if err != nil {
-			fmt.Println("Error marshalling " + pmetric.MetricTypeSum.String())
-		}
-		MetricTypeData += string(u)
+		pts := points.DataPoints()
+
+		MetricTypeData += appendNumberDataPoints(pts)
 
 		//appendNumberDataPoints(points.DataPoints(), data)
 		MetricTypeData += " }"
@@ -162,147 +150,183 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		MetricTypeData += "{ AggregationTemporality : " + points.AggregationTemporality().String() + ", "
 		//data["AggregationTemporality"] = append(data["AggregationTemporality"], &streamingMessageAvro.UnionStringNull{String: points.AggregationTemporality().String(),
 		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
-		tmp := &points
-		pts := tmp.DataPoints()
-		pts_tmp := &pts
-		u, err := json.Marshal(pts_tmp)
-		if err != nil {
-			fmt.Println("Error marshalling " + pmetric.MetricTypeExponentialHistogram.String())
-		}
-		MetricTypeData += string(u)
+		pts := points.DataPoints()
+		MetricTypeData += appendExponentialHistogramDataPoints(pts)
 		//appendExponentialHistogramDataPoints(points.DataPoints(), data)
-		MetricTypeData += "}"
+		MetricTypeData += " }"
 	case pmetric.MetricTypeSummary:
 
 		points := m.Summary()
 
 		tmp := &points
 		pts := tmp.DataPoints()
-		pts_tmp := &pts
-		u, err := json.Marshal(pts_tmp)
-		if err != nil {
-			fmt.Println("Error marshalling " + pmetric.MetricTypeSummary.String())
-		}
-		MetricTypeData += string(u)
 
-		//appendDoubleSummaryDataPoints(m.Summary().DataPoints(), data)
+		MetricTypeData += appendDoubleSummaryDataPoints(pts)
+
 	}
-	fmt.Println(string(u))
+
 	data["Metric_value"] = append(data["Metric_value"], &streamingMessageAvro.UnionStringNull{String: MetricTypeData,
 		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
 }
 
-func appendNumberDataPoints(ps pmetric.NumberDataPointSlice, data map[string][]*streamingMessageAvro.UnionStringNull) {
+func appendNumberDataPoints(ps pmetric.NumberDataPointSlice) string {
+	pts_data := "{ Datapoints : ["
 	for i := 0; i < ps.Len(); i++ {
 		p := ps.At(i)
 
-		appendDataPointAttributes(p.Attributes(), data)
+		pts_data += appendDataPointAttributes(p.Attributes())
 
-		data["AggregationTemporality"] = append(data["AggregationTemporality"], &streamingMessageAvro.UnionStringNull{String: p.StartTimestamp().String(),
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		pts_data += "{ AggregationTemporality : " + p.StartTimestamp().String() + " }, "
+		//data["AggregationTemporality"] = append(data["AggregationTemporality"], &streamingMessageAvro.UnionStringNull{String: p.StartTimestamp().String(),
+		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
-		data["StartTimestamp"] = append(data["StartTimestamp"], &streamingMessageAvro.UnionStringNull{String: p.Timestamp().String(),
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		pts_data += "{ StartTimestamp : " + p.Timestamp().String() + " }, "
+		//data["StartTimestamp"] = append(data["StartTimestamp"], &streamingMessageAvro.UnionStringNull{String: p.Timestamp().String(),
+		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
 		switch p.ValueType() {
 		case pmetric.NumberDataPointValueTypeInt:
-
-			data["Value"] = append(data["Value"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatInt(p.IntValue(), 10),
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+			pts_data += "{ Value : " + strconv.FormatInt(p.IntValue(), 10) + " } "
+			//data["Value"] = append(data["Value"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatInt(p.IntValue(), 10),
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		case pmetric.NumberDataPointValueTypeDouble:
-
-			data["Value"] = append(data["Value"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(p.DoubleValue(), 'f', -1, 64),
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+			pts_data += "{ Value : " + strconv.FormatFloat(p.DoubleValue(), 'f', -1, 64) + " } "
+			//data["Value"] = append(data["Value"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(p.DoubleValue(), 'f', -1, 64),
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		}
 
 	}
+	pts_data += " ] }"
+	return pts_data
 }
 
 // log attributes
-func appendDataPointAttributes(attributes pcommon.Map, data map[string][]*streamingMessageAvro.UnionStringNull) {
+func appendDataPointAttributes(attributes pcommon.Map) string {
 	if attributes.Len() == 0 {
-		return
+		return ""
 	}
-
+	attr := "{ attributes : [ "
 	attributes.Range(func(k string, v pcommon.Value) bool {
-		data[k] = append(data[k], &streamingMessageAvro.UnionStringNull{String: v.AsString(),
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		//data[k] = append(data[k], &streamingMessageAvro.UnionStringNull{String: v.AsString(),
+		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		attr += "{ " + k + " : " + v.AsString() + "}, "
+
 		return true
 	})
 
+	attr += " ] }"
+
+	return attr
 }
 
-func appendDoubleSummaryDataPoints(ps pmetric.SummaryDataPointSlice, data map[string][]*streamingMessageAvro.UnionStringNull) {
+func appendDoubleSummaryDataPoints(ps pmetric.SummaryDataPointSlice) string {
+	pts_data := "{ Datapoints : ["
+
 	for i := 0; i < ps.Len(); i++ {
+
 		p := ps.At(i)
-		data["SummaryDataPoints"] = append(data["SummaryDataPoints"], &streamingMessageAvro.UnionStringNull{String: strconv.Itoa(i),
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		pts_data += " { SummaryDataPoints : " + strconv.Itoa(i) + " }, "
+		//data["SummaryDataPoints"] = append(data["SummaryDataPoints"], &streamingMessageAvro.UnionStringNull{String: strconv.Itoa(i),
+		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
-		appendDataPointAttributes(p.Attributes(), data)
+		pts_data += appendDataPointAttributes(p.Attributes())
 
-		data["StartTimestamp"] = append(data["StartTimestamp"], &streamingMessageAvro.UnionStringNull{String: p.StartTimestamp().AsTime().String(),
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		pts_data += "{ StartTimestamp : " + p.StartTimestamp().AsTime().String() + " }, "
 
-		data["Timestamp"] = append(data["Timestamp"], &streamingMessageAvro.UnionStringNull{String: p.Timestamp().AsTime().String(),
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		//data["StartTimestamp"] = append(data["StartTimestamp"], &streamingMessageAvro.UnionStringNull{String: p.StartTimestamp().AsTime().String(),
+		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
-		data["Count"] = append(data["Count"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatUint(p.Count(), 10),
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		pts_data += "{ Timestamp : " + p.Timestamp().AsTime().String() + " }, "
 
-		data["Sum"] = append(data["Sum"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(p.Sum(), 'f', -1, 64),
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		//data["Timestamp"] = append(data["Timestamp"], &streamingMessageAvro.UnionStringNull{String: p.Timestamp().AsTime().String(),
+		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+
+		pts_data += "{ Count : " + strconv.FormatUint(p.Count(), 10) + " }, "
+		//data["Count"] = append(data["Count"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatUint(p.Count(), 10),
+		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+
+		pts_data += "{ Sum : " + strconv.FormatFloat(p.Sum(), 'f', -1, 64) + " }, "
+		//data["Sum"] = append(data["Sum"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(p.Sum(), 'f', -1, 64),
+		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
 		quantiles := p.QuantileValues()
+		quan_data := "{ QuantileValues : ["
 		for i := 0; i < quantiles.Len(); i++ {
 			quantile := quantiles.At(i)
-			data[strconv.FormatFloat(quantile.Quantile(), 'f', -1, 64)] = append(data[strconv.FormatFloat(quantile.Quantile(), 'f', -1, 64)], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(quantile.Value(), 'f', -1, 64),
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+			if (i+1 != quantiles.Len()) {
+				quan_data += "{ " + strconv.FormatFloat(quantile.Quantile(), 'f', -1, 64) + " : " + strconv.FormatFloat(quantile.Value(), 'f', -1, 64) + " }, "
+			} else {
+				quan_data += "{ " + strconv.FormatFloat(quantile.Quantile(), 'f', -1, 64) + " : " + strconv.FormatFloat(quantile.Value(), 'f', -1, 64) + " } "
+			}
+			//data[strconv.FormatFloat(quantile.Quantile(), 'f', -1, 64)] = append(data[strconv.FormatFloat(quantile.Quantile(), 'f', -1, 64)], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(quantile.Value(), 'f', -1, 64),
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
 		}
+		quan_data += " ] }"
+		if (i+1 != ps.Len()) {
+			pts_data += quan_data + " ,"
+		} else {
+			pts_data += quan_data
+		}
 	}
+	pts_data += " ] }"
+
+	return pts_data
 }
 
-func appendExponentialHistogramDataPoints(ps pmetric.ExponentialHistogramDataPointSlice, data map[string][]*streamingMessageAvro.UnionStringNull) {
+func appendExponentialHistogramDataPoints(ps pmetric.ExponentialHistogramDataPointSlice) string {
+	pts_data := "{ Datapoints : ["
 	for i := 0; i < ps.Len(); i++ {
 		p := ps.At(i)
 
-		data["ExponentialHistogramDataPoints"] = append(data["ExponentialHistogramDataPoints"], &streamingMessageAvro.UnionStringNull{String: strconv.Itoa(i),
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		pts_data += "{ ExponentialHistogramDataPoints : " + strconv.Itoa(i) + " }, "
+		//data["ExponentialHistogramDataPoints"] = append(data["ExponentialHistogramDataPoints"], &streamingMessageAvro.UnionStringNull{String: strconv.Itoa(i),
+		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
-		appendDataPointAttributes(p.Attributes(), data)
+		pts_data += appendDataPointAttributes(p.Attributes())
 
-		data["StartTimestamp"] = append(data["StartTimestamp"], &streamingMessageAvro.UnionStringNull{String: p.StartTimestamp().AsTime().String(),
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		pts_data += "{ StartTimestamp : " + p.StartTimestamp().AsTime().String() + " }, "
+		//data["StartTimestamp"] = append(data["StartTimestamp"], &streamingMessageAvro.UnionStringNull{String: p.StartTimestamp().AsTime().String(),
+		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
-		data["Timestamp"] = append(data["Timestamp"], &streamingMessageAvro.UnionStringNull{String: p.Timestamp().AsTime().String(),
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		pts_data += "{ Timestamp : " + p.Timestamp().AsTime().String() + " }, "
+		//data["Timestamp"] = append(data["Timestamp"], &streamingMessageAvro.UnionStringNull{String: p.Timestamp().AsTime().String(),
+		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
-		data["Count"] = append(data["Count"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatUint(p.Count(), 10),
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		pts_data += "{ Count : " + strconv.FormatUint(p.Count(), 10) + " }, "
+		//data["Count"] = append(data["Count"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatUint(p.Count(), 10),
+		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
 		if p.HasSum() {
-			data["Sum"] = append(data["Sum"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(p.Sum(), 'f', -1, 64),
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+			pts_data += "{ Sum : " + strconv.FormatFloat(p.Sum(), 'f', -1, 64) + " }, "
+			//data["Sum"] = append(data["Sum"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(p.Sum(), 'f', -1, 64),
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+
 		} else {
-			data["Sum"] = append(data["Sum"], &streamingMessageAvro.UnionStringNull{String: "",
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+			pts_data += "{ Sum : }, "
+			//data["Sum"] = append(data["Sum"], &streamingMessageAvro.UnionStringNull{String: "",
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		}
 
 		if p.HasMin() {
-			data["Min"] = append(data["Min"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(p.Min(), 'f', -1, 64),
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+			pts_data += "{ Min : " + strconv.FormatFloat(p.Min(), 'f', -1, 64) + " }, "
+			//data["Min"] = append(data["Min"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(p.Min(), 'f', -1, 64),
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		} else {
-			data["Min"] = append(data["Min"], &streamingMessageAvro.UnionStringNull{String: "",
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+			pts_data += "{ Min : }, "
+			//data["Min"] = append(data["Min"], &streamingMessageAvro.UnionStringNull{String: "",
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		}
 
 		if p.HasMax() {
-			data["Max"] = append(data["Max"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(p.Max(), 'f', -1, 64),
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+			pts_data += "{ Max : " + strconv.FormatFloat(p.Max(), 'f', -1, 64) + " }, "
+			//data["Max"] = append(data["Max"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(p.Max(), 'f', -1, 64),
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		} else {
-			data["Max"] = append(data["Max"], &streamingMessageAvro.UnionStringNull{String: "",
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+			pts_data += "{ Max : }, "
+			//data["Max"] = append(data["Max"], &streamingMessageAvro.UnionStringNull{String: "",
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		}
 
 		scale := int(p.Scale())
@@ -318,7 +342,7 @@ func appendExponentialHistogramDataPoints(ps pmetric.ExponentialHistogramDataPoi
 
 		negB := p.Negative().BucketCounts()
 		posB := p.Positive().BucketCounts()
-
+		pts_expo := "{ points : [ "
 		for i := 0; i < negB.Len(); i++ {
 			pos := negB.Len() - i - 1
 			index := p.Negative().Offset() + int32(pos)
@@ -327,17 +351,22 @@ func appendExponentialHistogramDataPoints(ps pmetric.ExponentialHistogramDataPoi
 
 			position := "[-" + strconv.FormatFloat(upper, 'f', -1, 64) + ", " + "-" + strconv.FormatFloat(lower, 'f', -1, 64) + "-]"
 			count := strconv.FormatUint(negB.At(pos), 10)
-			data[position] = append(data[position], &streamingMessageAvro.UnionStringNull{String: count,
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+
+			pts_expo += "{" + position + " : " + count + "}"
+
+			//data[position] = append(data[position], &streamingMessageAvro.UnionStringNull{String: count,
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
 		}
 
 		if p.ZeroCount() != 0 {
-			data["[0,0]"] = append(data["[0,0]"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatUint(p.ZeroCount(), 10),
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+			pts_expo += "{ [0,0] : " + strconv.FormatUint(p.ZeroCount(), 10) + " }"
+			//data["[0,0]"] = append(data["[0,0]"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatUint(p.ZeroCount(), 10),
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		} else {
-			data["[0,0]"] = append(data["[0,0]"], &streamingMessageAvro.UnionStringNull{String: "",
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+			pts_expo += "{ [0,0] : }"
+			//data["[0,0]"] = append(data["[0,0]"], &streamingMessageAvro.UnionStringNull{String: "",
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		}
 
 		for pos := 0; pos < posB.Len(); pos++ {
@@ -345,60 +374,87 @@ func appendExponentialHistogramDataPoints(ps pmetric.ExponentialHistogramDataPoi
 			lower := math.Exp(float64(index) * factor)
 			upper := math.Exp(float64(index+1) * factor)
 
-			position := "[-" + strconv.FormatFloat(lower, 'f', -1, 64) + ", " + "-" + strconv.FormatFloat(upper, 'f', -1, 64) + "-]"
+			position := "[ " + strconv.FormatFloat(lower, 'f', -1, 64) + ", " + "-" + strconv.FormatFloat(upper, 'f', -1, 64) + "]"
 			count := strconv.FormatUint(posB.At(pos), 10)
-			data[position] = append(data[position], &streamingMessageAvro.UnionStringNull{String: count,
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+
+			pts_expo += "{" + position + " : " + count + " }"
+			//data[position] = append(data[position], &streamingMessageAvro.UnionStringNull{String: count,
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		}
+		if (i+1 != ps.Len()) {
+			pts_data += pts_expo + ", "
+		} else {
+			pts_data += pts_expo
 		}
 	}
+	pts_data += " ] }"
+
+	return pts_data
 }
 
-func appendHistogramDataPoints(ps pmetric.HistogramDataPointSlice, data map[string][]*streamingMessageAvro.UnionStringNull) {
+func appendHistogramDataPoints(ps pmetric.HistogramDataPointSlice) string {
+	pts_data := "{ Datapoints : ["
 	for i := 0; i < ps.Len(); i++ {
 		p := ps.At(i)
-		data["HistogramDataPoints"] = append(data["HistogramDataPoints"], &streamingMessageAvro.UnionStringNull{String: strconv.Itoa(i),
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		pts_data += "{ HistogramDataPoints : " + strconv.Itoa(i) + " }, "
+		//data["HistogramDataPoints"] = append(data["HistogramDataPoints"], &streamingMessageAvro.UnionStringNull{String: strconv.Itoa(i),
+		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
-		appendDataPointAttributes(p.Attributes(), data)
+		pts_data += appendDataPointAttributes(p.Attributes())
 
-		data["StartTimestamp"] = append(data["StartTimestamp"], &streamingMessageAvro.UnionStringNull{String: p.StartTimestamp().AsTime().String(),
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
-
-		data["Timestamp"] = append(data["Timestamp"], &streamingMessageAvro.UnionStringNull{String: p.Timestamp().AsTime().String(),
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		pts_data += "{ StartTimestamp : " + p.StartTimestamp().AsTime().String() + " }, "
+		//data["StartTimestamp"] = append(data["StartTimestamp"], &streamingMessageAvro.UnionStringNull{String: p.StartTimestamp().AsTime().String(),
+		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		pts_data += "{ Timestamp : " + p.Timestamp().AsTime().String() + " }, "
+		//data["Timestamp"] = append(data["Timestamp"], &streamingMessageAvro.UnionStringNull{String: p.Timestamp().AsTime().String(),
+		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
 		if p.HasSum() {
-			data["Sum"] = append(data["Sum"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(p.Sum(), 'f', -1, 64),
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+			pts_data += "{ Sum : " + strconv.FormatFloat(p.Sum(), 'f', -1, 64) + " }, "
+			//data["Sum"] = append(data["Sum"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(p.Sum(), 'f', -1, 64),
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+
 		} else {
-			data["Sum"] = append(data["Sum"], &streamingMessageAvro.UnionStringNull{String: "",
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+			pts_data += "{ Sum : }, "
+			//data["Sum"] = append(data["Sum"], &streamingMessageAvro.UnionStringNull{String: "",
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		}
 
 		if p.HasMin() {
-			data["Min"] = append(data["Min"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(p.Min(), 'f', -1, 64),
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+			pts_data += "{ Min : " + strconv.FormatFloat(p.Min(), 'f', -1, 64) + " }, "
+			//data["Min"] = append(data["Min"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(p.Min(), 'f', -1, 64),
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		} else {
-			data["Min"] = append(data["Min"], &streamingMessageAvro.UnionStringNull{String: "",
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+			pts_data += "{ Min : }, "
+			//data["Min"] = append(data["Min"], &streamingMessageAvro.UnionStringNull{String: "",
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		}
 
 		if p.HasMax() {
-			data["Max"] = append(data["Max"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(p.Max(), 'f', -1, 64),
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+			pts_data += "{ Max : " + strconv.FormatFloat(p.Max(), 'f', -1, 64) + " }, "
+			//data["Max"] = append(data["Max"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatFloat(p.Max(), 'f', -1, 64),
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		} else {
-
-			data["Max"] = append(data["Max"], &streamingMessageAvro.UnionStringNull{String: "",
-				UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+			pts_data += "{ Max : }, "
+			//data["Max"] = append(data["Max"], &streamingMessageAvro.UnionStringNull{String: "",
+			//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 		}
 
-		data["ExplicitBounds"] = append(data["ExplicitBounds"], &streamingMessageAvro.UnionStringNull{String: arrayFloat64ToString(p.ExplicitBounds().AsRaw()),
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		pts_data += "{ ExplicitBounds : " + arrayFloat64ToString(p.ExplicitBounds().AsRaw()) + " }, "
 
-		data["Buckets"] = append(data["Buckets"], &streamingMessageAvro.UnionStringNull{String: arrayUInt64ToString(p.BucketCounts().AsRaw()),
-			UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+		//data["ExplicitBounds"] = append(data["ExplicitBounds"], &streamingMessageAvro.UnionStringNull{String: arrayFloat64ToString(p.ExplicitBounds().AsRaw()),
+		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+
+		pts_data += "{ Buckets : " + arrayUInt64ToString(p.BucketCounts().AsRaw()) + " }"
+
+		if (i+1 != ps.Len()) {
+			pts_data += ", "
+		}
+		//data["Buckets"] = append(data["Buckets"], &streamingMessageAvro.UnionStringNull{String: arrayUInt64ToString(p.BucketCounts().AsRaw()),
+		//	UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
 	}
+	return pts_data
 }
 
 func arrayUInt64ToString(raw []uint64) string {
@@ -426,7 +482,9 @@ func appendMetricDescriptons(md pmetric.Metric, data map[string][]*streamingMess
 	name := md.Name()
 
 	unit := md.Unit()
+
 	metricType := md.Type().String()
+
 	data["Name"] = append(data["Name"], &streamingMessageAvro.UnionStringNull{String: name,
 		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 
