@@ -638,6 +638,15 @@ func appendToData(span ptrace.Span, data map[string][]*streamingMessageAvro.Unio
 	low, high := TraceIDToUInt64Pair(span.TraceID())
 	traceIdString := string(low) + "-" + string(high)
 	startTime := span.StartTimestamp().String()
+	endTime := span.EndTimestamp().String()
+	name := span.Name()
+	kind := span.Kind().String()
+	statusCode := span.Status().Code().String()
+	statusMsg := span.Status().Message()
+	attributes := appendDataPointAttributes(span.Attributes())
+	events := logEvents(span.Events())
+	links := logLinks(span.Links())
+
 	data["SpanId"] = append(data["SpanId"], &streamingMessageAvro.UnionStringNull{String: strconv.FormatUint(SpanIDToUInt64(span.SpanID()), 10),
 		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 	data["TraceId"] = append(data["TraceId"], &streamingMessageAvro.UnionStringNull{String: traceIdString,
@@ -647,6 +656,23 @@ func appendToData(span ptrace.Span, data map[string][]*streamingMessageAvro.Unio
 		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
 	data["StartTime"] = append(data["StartTime"], &streamingMessageAvro.UnionStringNull{String: string(startTime),
 		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+	data["EndTime"] = append(data["EndTime"], &streamingMessageAvro.UnionStringNull{String: string(endTime),
+		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+	data["Name"] = append(data["Name"], &streamingMessageAvro.UnionStringNull{String: string(name),
+		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+	data["Kind"] = append(data["Kind"], &streamingMessageAvro.UnionStringNull{String: string(kind),
+		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+	data["StatusCode"] = append(data["StatusCode"], &streamingMessageAvro.UnionStringNull{String: string(statusCode),
+		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+	data["StatusMessage"] = append(data["StatusMessage"], &streamingMessageAvro.UnionStringNull{String: string(statusMsg),
+		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+	data["Events"] = append(data["Events"], &streamingMessageAvro.UnionStringNull{String: string(events),
+		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+	data["Links"] = append(data["Links"], &streamingMessageAvro.UnionStringNull{String: string(links),
+		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+	data["Attributes"] = append(data["Attributes"], &streamingMessageAvro.UnionStringNull{String: string(attributes),
+		UnionType: streamingMessageAvro.UnionStringNullTypeEnumString})
+
 }
 
 func (e *enmsAnalyticsExporter) ConsumeMetrics(_ context.Context, md pmetric.Metrics) error {
@@ -730,7 +756,70 @@ func (e *enmsAnalyticsExporter) ConsumeLogs(_ context.Context, ld plog.Logs) err
 	buf = e.compressor(buf)
 	return e.exporter(e, buf)
 }
+func logInstrumentationScope(il pcommon.InstrumentationScope) string {
 
+	instrumentationScope := "{ InstrumentationScope : [ "
+
+	instrumentationScope += "{ Name : " + il.Name() + ", "
+	instrumentationScope += "Version : " + il.Version() + ", "
+
+	instrumentationScope += appendDataPointAttributes(il.Attributes())
+	instrumentationScope += " ] }"
+
+	return instrumentationScope
+}
+func logLinks(sl ptrace.SpanLinkSlice) string {
+	if sl.Len() == 0 {
+		return ""
+	}
+	spanLinks := "{ spanLinks : [ "
+
+	for i := 0; i < sl.Len(); i++ {
+		l := sl.At(i)
+
+		spanLinkNum := "{ SpanLink #" + strconv.Itoa(i) + " : "
+		spanLinks += spanLinkNum
+		spanLinks += "TraceId : " + l.TraceID().String() + ", "
+		spanLinks += "SpanID : " + l.SpanID().String() + ", "
+		spanLinks += "TraceState : " + l.TraceState().AsRaw() + ", "
+		spanLinks += "DroppedAttributesCount : " + strconv.FormatUint(uint64(l.DroppedAttributesCount()), 10) + ", "
+
+		if l.Attributes().Len() == 0 {
+			continue
+		}
+		spanLinks += appendDataPointAttributes(l.Attributes())
+		spanLinks += " }, "
+
+	}
+	spanLinks += " ] }"
+	return spanLinks
+
+}
+func logEvents(se ptrace.SpanEventSlice) string {
+	if se.Len() == 0 {
+		return ""
+	}
+	spanEvents := "{ SpanEvents : [ "
+
+	for i := 0; i < se.Len(); i++ {
+		e := se.At(i)
+
+		spanEventNum := "{ SpanEvent #" + strconv.Itoa(i) + " : "
+		spanEvents += spanEventNum
+		spanEvents += "Name : " + e.Name() + ", "
+		spanEvents += "Timestamp : " + e.Timestamp().String() + ", "
+		spanEvents += "DroppedAttributesCount : " + strconv.FormatUint(uint64(e.DroppedAttributesCount()), 10) + ", "
+
+		if e.Attributes().Len() == 0 {
+			continue
+		}
+		spanEvents += appendDataPointAttributes(e.Attributes())
+		spanEvents += " }, "
+
+	}
+	spanEvents += " ] }"
+	return spanEvents
+}
 func exportMessageAsLine(e *enmsAnalyticsExporter, buf []byte) error {
 	// Ensure only one write operation happens at a time.
 	e.mutex.Lock()
