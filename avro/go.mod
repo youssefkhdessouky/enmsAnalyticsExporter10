@@ -1,4 +1,4 @@
-module github.com/mohamedtaher567/enmsAnalyticsExporter10/avro
+module github.com/youssefkhdessouky/enmsAnalyticsExporter10/avro
 
 go 1.19
 
