@@ -22,7 +22,7 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
 	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/serde"
 	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/serde/avro"
-	streamingMessageAvro "github.com/mohamedtaher567/enmsAnalyticsExporter10/avro"
+	streamingMessageAvro "github.com/youssefkhdessouky/enmsAnalyticsExporter10/avro"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"

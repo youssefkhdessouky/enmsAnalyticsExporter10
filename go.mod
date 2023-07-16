@@ -1,4 +1,4 @@
-module github.com/mohamedtaher567/enmsAnalyticsExporter10
+module github.com/youssefkhdessouky/enmsAnalyticsExporter10
 
 go 1.19
 
@@ -6,7 +6,7 @@ require (
 	github.com/confluentinc/confluent-kafka-go v1.9.2
 	github.com/confluentinc/confluent-kafka-go/v2 v2.0.2
 	github.com/klauspost/compress v1.15.15
-	github.com/mohamedtaher567/enmsAnalyticsExporter10/avro v0.0.0-20230202201325-16902854024e
+	github.com/youssefkhdessouky/enmsAnalyticsExporter10/avro v0.0.0-20230202201325-16902854024e
 	go.opentelemetry.io/collector v0.68.0
 	go.opentelemetry.io/collector/component v0.68.0
 	go.opentelemetry.io/collector/confmap v0.68.0
