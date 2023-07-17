@@ -139,7 +139,7 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 
 		MetricTypeData += appendHistogramDataPoints(pts)
 
-		MetricTypeData += "]"
+		MetricTypeData += "] "
 		//appendHistogramDataPoints(points.DataPoints(), data)
 	case pmetric.MetricTypeExponentialHistogram:
 		points := m.ExponentialHistogram()
