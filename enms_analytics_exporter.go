@@ -121,6 +121,7 @@ func appendMetricDataPoints(m pmetric.Metric, data map[string][]*streamingMessag
 		//}
 		pts := points.DataPoints()
 
+
 		MetricTypeData += appendNumberDataPoints(pts)
 
 		//appendNumberDataPoints(points.DataPoints(), data)
