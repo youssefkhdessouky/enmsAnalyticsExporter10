@@ -86,7 +86,7 @@ func MarshalMetrics(md pmetric.Metrics) map[string][]*streamingMessageAvro.Union
 				metric := metrics.At(k)
 				appendMetricDescriptons(metric, data)
 				appendMetricDataPoints(metric, data)
-
+                fmt.Println("change test")
 			}
 		}
 	}
