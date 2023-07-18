@@ -6,7 +6,7 @@ require (
 	github.com/confluentinc/confluent-kafka-go v1.9.2
 	github.com/confluentinc/confluent-kafka-go/v2 v2.2.0
 	github.com/klauspost/compress v1.16.7
-	github.com/youssefkhdessouky/enmsAnalyticsExporter10/avro v0.0.0-20230717112722-5da66c3d63d8
+	github.com/youssefkhdessouky/enmsAnalyticsExporter/avro@latest
 	go.opentelemetry.io/collector/component v0.81.0
 	go.opentelemetry.io/collector/confmap v0.81.0
 	go.opentelemetry.io/collector/consumer v0.81.0
@@ -52,4 +52,4 @@ require (
 	google.golang.org/protobuf v1.31.0 // indirect
 )
 
-replace github.com/youssefkhdessouky/enmsAnalyticsExporter10/avro => ./avro
+replace github.com/youssefkhdessouky/enmsAnalyticsExporter/avro => ./avro
